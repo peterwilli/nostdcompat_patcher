@@ -42,11 +42,10 @@ def main():
                     # update dev dependency as well if needed
                     if 'dev-dependencies' in toml_dict and k in toml_dict['dev-dependencies']:
                         toml_dict['dev-dependencies'][k]['path'] = toml_dict['dependencies'][k]['path']
-                else:
-                    print(f"{k} 0", dependency_folders)
 
             f.seek(0, 0)
             f.write(toml.dumps(toml_dict))
+            f.truncate()
             
     rust_project_path = os.path.join(output_folder, "rust_project")
     pathlib.Path(os.path.join(rust_project_path, "src")).mkdir(parents=True, exist_ok=True)
@@ -77,7 +76,6 @@ def main():
     
     p = subprocess.Popen(["cargo", "run"], cwd=cargo_project_folder, env=rust_env)
     p.wait()
-    time.sleep(2)
     
     registry_path = os.path.join(cargo_root_folder, 'registry', 'src', 'github.com-1ecc6299db9ec823')
     dependency_folders = os.listdir(registry_path)
