@@ -34,8 +34,7 @@ def main():
             f.seek(0, 0)
             f.write(toml.dumps(toml_dict))
             
-    # tmp = tempfile.mkdtemp()
-    tmp = "/home/peter/poop"
+    tmp = tempfile.mkdtemp()
     print("tmp", tmp)
     rust_project_path = os.path.join(tmp, "rust_project")
     pathlib.Path(os.path.join(rust_project_path, "src")).mkdir(parents=True, exist_ok=True)
