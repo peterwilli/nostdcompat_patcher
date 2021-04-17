@@ -20,7 +20,7 @@ I only work on Linux, and haven't used Windows since Windows XP, if you wish to 
 - Sit back and relax, then the output will come to you eventually:
 
     > Done! Add:
-    > rune = { path = "/home/peter/poop/cargo_root/registry/src/> github.com-1ecc6299db9ec823/rune-0.9.0" }
+    > rune = { path = "/tmp/hcu1UURV/cargo_root/registry/src/> github.com-1ecc6299db9ec823/rune-0.9.0" }
 To your dependencies and hope for the best!
 
 If you managed to get this far, then you can include it and hope it'll compile!
