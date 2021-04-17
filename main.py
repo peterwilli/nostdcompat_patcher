@@ -6,6 +6,7 @@ import subprocess
 import textwrap
 from distutils.dir_util import copy_tree
 import toml
+import time
 
 # Local stuff
 from patcher import patch_crate
@@ -23,20 +24,31 @@ def main():
     version = sys.argv[2]
     output_folder = sys.argv[3]
 
-    def patch_toml(toml_path):
+    def patch_toml(toml_path, dependency_folders):
         with open(toml_path, mode='r+') as f:
             cargo_toml = f.read()
             toml_dict = toml.loads(cargo_toml)
             for k in toml_dict['dependencies']:
                 if k == "no-std-compat":
                     continue
-                toml_dict['dependencies'][k]['path'] = os.path.join(output_folder, f"{k}-{toml_dict['dependencies'][k]['version']}")
+                
+                # Find closest dependency folder (since version numbers in Cargo.toml can differ from the actual folder name)
+                dependency_folders_filtered = [x for x in dependency_folders if x.startswith(k)]
+                if len(dependency_folders_filtered) > 0:
+                    dependency_folder = dependency_folders_filtered[0]
+                    toml_dict['dependencies'][k]['path'] = os.path.join(registry_path, dependency_folder)
+                    del toml_dict['dependencies'][k]['version']
+                    
+                    # update dev dependency as well if needed
+                    if 'dev-dependencies' in toml_dict and k in toml_dict['dev-dependencies']:
+                        toml_dict['dev-dependencies'][k]['path'] = toml_dict['dependencies'][k]['path']
+                else:
+                    print(f"{k} 0", dependency_folders)
+
             f.seek(0, 0)
             f.write(toml.dumps(toml_dict))
             
-    tmp = tempfile.mkdtemp()
-    print("tmp", tmp)
-    rust_project_path = os.path.join(tmp, "rust_project")
+    rust_project_path = os.path.join(output_folder, "rust_project")
     pathlib.Path(os.path.join(rust_project_path, "src")).mkdir(parents=True, exist_ok=True)
     print(f"Making new project depending on crate '{crate} v{version}' to download the crates required...")
     
@@ -58,13 +70,14 @@ def main():
         }
         """))
 
-    cargo_project_folder = os.path.join(tmp, "rust_project")
-    cargo_root_folder = os.path.join(tmp, 'cargo_root')
+    cargo_project_folder = os.path.join(output_folder, "rust_project")
+    cargo_root_folder = os.path.join(output_folder, 'cargo_root')
     pathlib.Path(cargo_root_folder).mkdir(parents=True, exist_ok=True)
     rust_env = {**os.environ, 'CARGO_HOME': cargo_root_folder}
     
     p = subprocess.Popen(["cargo", "run"], cwd=cargo_project_folder, env=rust_env)
     p.wait()
+    time.sleep(2)
     
     registry_path = os.path.join(cargo_root_folder, 'registry', 'src', 'github.com-1ecc6299db9ec823')
     dependency_folders = os.listdir(registry_path)
@@ -75,7 +88,7 @@ def main():
         patch_crate(dependency_path)
         
         # Patch the dependencies to link to local (patched) dependencies only
-        patch_toml(os.path.join(dependency_path, "Cargo.toml"))
+        patch_toml(os.path.join(dependency_path, "Cargo.toml"), dependency_folders)
         
     print("Done! Add:")
     main_crate_path = os.path.join(registry_path, f"{crate}-{version}")

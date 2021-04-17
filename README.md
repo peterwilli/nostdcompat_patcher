@@ -15,12 +15,12 @@ I only work on Linux, and haven't used Windows since Windows XP, if you wish to 
 
 - Install the dependencies from "requirements.txt" by running `pip install -r requirements.txt`
 
-- Pick a crate you wish to patch, for example, Rune 0.9.0: `python main.py rune 0.9.0 output`
+- Pick a crate you wish to patch, for example, Rune 0.9.0: `python main.py rune 0.9.0 /path/to/output_dir`
 
 - Sit back and relax, then the output will come to you eventually:
 
     > Done! Add:
-    > rune = { path = "/tmp/hcu1UURV/cargo_root/registry/src/ github.com-1ecc6299db9ec823/rune-0.9.0" }
+    > rune = { path = "/path/to/output_dir/cargo_root/registry/src/ github.com-1ecc6299db9ec823/rune-0.9.0" }
     > To your dependencies and hope for the best!
 
 If you managed to get this far, then you can include it and hope it'll compile!
