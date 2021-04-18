@@ -28,25 +28,26 @@ def main():
         with open(toml_path, mode='r+') as f:
             cargo_toml = f.read()
             toml_dict = toml.loads(cargo_toml)
-            for k in toml_dict['dependencies']:
-                if k == "no-std-compat":
-                    continue
-                
-                # Find closest dependency folder (since version numbers in Cargo.toml can differ from the actual folder name)
-                dependency_folders_filtered = [x for x in dependency_folders if x.startswith(k)]
-                if len(dependency_folders_filtered) > 0:
-                    dependency_folder = dependency_folders_filtered[0]
-                    toml_dict['dependencies'][k]['path'] = os.path.join(registry_path, dependency_folder)
-                    toml_dict['dependencies'][k]['default-features'] = False
-                    del toml_dict['dependencies'][k]['version']
+            if 'dependencies' in toml_dict:
+                for k in toml_dict['dependencies']:
+                    if k == "no-std-compat":
+                        continue
                     
-                    # update dev dependency as well if needed
-                    if 'dev-dependencies' in toml_dict and k in toml_dict['dev-dependencies']:
-                        toml_dict['dev-dependencies'][k]['path'] = toml_dict['dependencies'][k]['path']
+                    # Find closest dependency folder (since version numbers in Cargo.toml can differ from the actual folder name)
+                    dependency_folders_filtered = [x for x in dependency_folders if x.startswith(k)]
+                    if len(dependency_folders_filtered) > 0:
+                        dependency_folder = dependency_folders_filtered[0]
+                        toml_dict['dependencies'][k]['path'] = os.path.join(registry_path, dependency_folder)
+                        toml_dict['dependencies'][k]['default-features'] = False
+                        del toml_dict['dependencies'][k]['version']
+                        
+                        # update dev dependency as well if needed
+                        if 'dev-dependencies' in toml_dict and k in toml_dict['dev-dependencies']:
+                            toml_dict['dev-dependencies'][k]['path'] = toml_dict['dependencies'][k]['path']
 
-            f.seek(0, 0)
-            f.write(toml.dumps(toml_dict))
-            f.truncate()
+                f.seek(0, 0)
+                f.write(toml.dumps(toml_dict))
+                f.truncate()
             
     rust_project_path = os.path.join(output_folder, "rust_project")
     pathlib.Path(os.path.join(rust_project_path, "src")).mkdir(parents=True, exist_ok=True)

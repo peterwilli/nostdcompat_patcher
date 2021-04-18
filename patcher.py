@@ -9,6 +9,12 @@ regex_last_outer_attribute = re.compile('(\s*#!\[.*]$)(?![\s\S]*#!\[.*]$)', re.M
         
 def patch_crate(crate_folder):
     # Patches this folder according to https://crates.io/crates/no-std-compat
+    with open(os.path.join(crate_folder, 'src', 'lib.rs'), 'r') as f:
+        content = f.read()
+        if "no_std" in content:
+            print(f"{crate_folder} already has no_std support! Skipping.")
+            return
+
     with open(os.path.join(crate_folder, 'Cargo.toml'), mode='r+') as f:    
         cargo_toml = f.read()
         toml_dict = toml.loads(cargo_toml)
