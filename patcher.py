@@ -16,7 +16,7 @@ def patch_crate(crate_folder):
             toml_dict["dependencies"] = {}
             
         toml_dict["dependencies"]["no-std-compat"] = {
-            "version": std_compat_ver,
+            "path": os.path.abspath(os.path.join(os.path.realpath(__file__), '..', 'no-std-compat-custom')),
             "features": ["alloc"]
         }
         f.seek(0, 0)

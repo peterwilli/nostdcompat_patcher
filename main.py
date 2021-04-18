@@ -37,6 +37,7 @@ def main():
                 if len(dependency_folders_filtered) > 0:
                     dependency_folder = dependency_folders_filtered[0]
                     toml_dict['dependencies'][k]['path'] = os.path.join(registry_path, dependency_folder)
+                    toml_dict['dependencies'][k]['default-features'] = False
                     del toml_dict['dependencies'][k]['version']
                     
                     # update dev dependency as well if needed
