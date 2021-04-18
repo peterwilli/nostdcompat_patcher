@@ -30,7 +30,7 @@ def main():
             toml_dict = toml.loads(cargo_toml)
             if 'dependencies' in toml_dict:
                 for k in toml_dict['dependencies']:
-                    if k == "no-std-compat":
+                    if k in ["no-std-compat", "syn", "proc-macro2", "proc-macro", "quote"]:
                         continue
                     
                     # Find closest dependency folder (since version numbers in Cargo.toml can differ from the actual folder name)

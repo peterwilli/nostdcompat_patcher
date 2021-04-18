@@ -48,6 +48,7 @@
     pub use self::generated::*;
 
     pub use core_error as error;
+    pub use unix_path as path;
 
     // if #[cfg(feature = "compat_macros")] {
         #[cfg(all(not(feature = "std"), feature = "compat_macros"))]
