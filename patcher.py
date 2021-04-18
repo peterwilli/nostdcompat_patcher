@@ -5,7 +5,7 @@ import toml
 import re
 
 std_compat_ver = "0.4.1"
-regex_last_outer_attribute = re.compile('(\s*(\/\/!.*|#!\[.*])$)(?![\s\S]*(\/\/!.*|#!\[.*])$)', re.MULTILINE)
+regex_last_outer_attribute = re.compile('(\s*(^\/\/!.*|^#!\[[\s\S]*?\])$)(?![\s\S]*(^\/\/!.*|^#!\[[\s\S]*?\])$)', re.MULTILINE)
         
 def patch_crate(crate_folder):
     # Patches this folder according to https://crates.io/crates/no-std-compat
