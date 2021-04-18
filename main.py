@@ -24,13 +24,13 @@ def main():
     version = sys.argv[2]
     output_folder = sys.argv[3]
 
-    def patch_toml(toml_path, dependency_folders):
+    def patch_toml(toml_path, dependency_folders, is_no_std_crate):
         with open(toml_path, mode='r+') as f:
             cargo_toml = f.read()
             toml_dict = toml.loads(cargo_toml)
             if 'dependencies' in toml_dict:
                 for k in toml_dict['dependencies']:
-                    if k in ["no-std-compat", "syn", "proc-macro2", "proc-macro", "quote"]:
+                    if k in ["no-std-compat", "syn", "proc-macro2", "proc-macro", "quote", "thiserror-impl"]:
                         continue
                     
                     # Find closest dependency folder (since version numbers in Cargo.toml can differ from the actual folder name)
@@ -38,8 +38,12 @@ def main():
                     if len(dependency_folders_filtered) > 0:
                         dependency_folder = dependency_folders_filtered[0]
                         toml_dict['dependencies'][k]['path'] = os.path.join(registry_path, dependency_folder)
-                        toml_dict['dependencies'][k]['default-features'] = False
+                        if not is_no_std_crate:
+                            toml_dict['dependencies'][k]['default-features'] = False
                         del toml_dict['dependencies'][k]['version']
+
+                        if k == "serde":
+                            toml_dict['dependencies'][k]["features"] = ["alloc"]
                         
                         # update dev dependency as well if needed
                         if 'dev-dependencies' in toml_dict and k in toml_dict['dev-dependencies']:
@@ -85,10 +89,19 @@ def main():
     for dependency_folder in dependency_folders:
         print(f"Patching {dependency_folder}...")
         dependency_path = os.path.join(registry_path, dependency_folder)
-        patch_crate(dependency_path)
+
+        is_no_std_crate = False
+        with open(os.path.join(dependency_path, 'src', 'lib.rs'), 'r') as f:
+            content = f.read()
+            if "no_std" in content:
+                is_no_std_crate = True
+            del content
+        print(is_no_std_crate, dependency_folder)
+                
+        patch_crate(dependency_path, is_no_std_crate)
         
         # Patch the dependencies to link to local (patched) dependencies only
-        patch_toml(os.path.join(dependency_path, "Cargo.toml"), dependency_folders)
+        patch_toml(os.path.join(dependency_path, "Cargo.toml"), dependency_folders, is_no_std_crate)
         
     print("Done! Add:")
     main_crate_path = os.path.join(registry_path, f"{crate}-{version}")

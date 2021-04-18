@@ -7,13 +7,11 @@ import re
 std_compat_ver = "0.4.1"
 regex_last_outer_attribute = re.compile('(\s*(^\/\/!.*|^#!\[[\s\S]*?\])$)(?![\s\S]*(^\/\/!.*|^#!\[[\s\S]*?\])$)', re.MULTILINE)
         
-def patch_crate(crate_folder):
+def patch_crate(crate_folder, is_no_std_crate):
     # Patches this folder according to https://crates.io/crates/no-std-compat
-    with open(os.path.join(crate_folder, 'src', 'lib.rs'), 'r') as f:
-        content = f.read()
-        if "no_std" in content:
-            print(f"{crate_folder} already has no_std support! Skipping.")
-            return
+    if is_no_std_crate:
+        print(f"{crate_folder} already has no_std support! Skipping.")
+        return
 
     with open(os.path.join(crate_folder, 'Cargo.toml'), mode='r+') as f:    
         cargo_toml = f.read()
@@ -23,7 +21,7 @@ def patch_crate(crate_folder):
             
         toml_dict["dependencies"]["no-std-compat"] = {
             "path": os.path.abspath(os.path.join(os.path.realpath(__file__), '..', 'no-std-compat-custom')),
-            "features": ["alloc"]
+            "features": ["alloc", "compat_hash", "compat_sync", "compat_macros"]
         }
         f.seek(0, 0)
         f.write(toml.dumps(toml_dict))
